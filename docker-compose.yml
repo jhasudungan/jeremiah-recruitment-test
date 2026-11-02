@@ -1,0 +1,39 @@
+name: jeremiah-recruitment-test
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: kopnus_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      # Host port 5433 by default, so it doesn't clash with a local Postgres on 5432 (Assuming some instance already running)
+      # No need to change application properties, it connected through the 5432 in container not machine
+      # On machine, db will be mounted to port 5433, assuming an instance already running on 5432
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U transfer -d transfer_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy   # wait until Postgres accepts connections
+    environment:
+      # "postgres" is the service name above, resolved over Docker's network
+      DB_URL: jdbc:postgresql://postgres:5432/kopnus_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: root
+      JWT_SECRET: "${JWT_SECRET:-VzavRKfdOC06rlGfMamlFXmJP+Ep2h2HrlHEc3lTAeA=}"
+    ports:
+      - "${APP_HOST_PORT:-8080}:8080"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
