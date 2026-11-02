@@ -308,7 +308,8 @@ so short bursts are allowed but the sustained rate is capped.
 | `POST /api/auth/login` | 10 per minute | client IP + username | Stop password guessing without letting anyone lock out a user from elsewhere |
 
 When a bucket is empty the API answers `429 RATE_LIMIT_EXCEEDED` with a `Retry-After` header. Successful transfers include `X-RateLimit-Remaining`. The check runs before any expensive work (BCrypt, database locks). Limits are configurable (`app.rate-limit.*` in `application.properties`, or environment variables such as `APP_RATELIMIT_TRANSFER_CAPACITY`).
-To test or trigger rate limit the best way is repeatedly hit a login request. 
+To test or trigger rate limit the best way is repeatedly hit a login request.
+
 ---
 
 ## 5. Error handling
